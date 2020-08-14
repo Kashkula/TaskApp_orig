@@ -16,9 +16,11 @@ import android.widget.EditText;
 import com.example.taskapp_orig.R;
 import com.example.taskapp_orig.ui.models.Task;
 
-public class FormFragment extends Fragment implements ITaskListener {
+public class FormFragment extends Fragment {
 
     private EditText editText;
+    private boolean edit;
+    protected Task task;
 
 
     @Override
@@ -32,20 +34,27 @@ public class FormFragment extends Fragment implements ITaskListener {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         editText = view.findViewById(R.id.editText);
+        task = (Task) requireArguments().getSerializable("task");
+        if (task != null) {
+            editText.setText(task.getTitle());
+            edit = true;
+        }
         view.findViewById(R.id.btn_save).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 save();
             }
         });
+
     }
 
     private void save() {
         String text = editText.getText().toString().trim();
-        if (!text.isEmpty()) {
+        if (!text.isEmpty())  {
             Task task = new Task(text, System.currentTimeMillis());
             Bundle bundle = new Bundle();
             bundle.putSerializable("task", task);
+            bundle.putBoolean("edit", edit);
             getParentFragmentManager().setFragmentResult("form", bundle);
             NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
             navController.navigateUp();
@@ -54,8 +63,5 @@ public class FormFragment extends Fragment implements ITaskListener {
         }
     }
 
-    @Override
-    public void onElement(String text) {
 
-    }
 }

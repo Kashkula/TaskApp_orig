@@ -18,6 +18,7 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.taskapp_orig.R;
+import com.example.taskapp_orig.interfaces.OnItemClickListener;
 import com.example.taskapp_orig.ui.models.Task;
 
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ public class HomeFragment extends Fragment {
 
     private TaskAdapter adapter;
     private ArrayList<Task> list;
+    protected int currentPosition;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -46,18 +48,22 @@ public class HomeFragment extends Fragment {
     }
 
     private void initResultListener() {
-        getParentFragmentManager().setFragmentResultListener(
-                "form",
-                getViewLifecycleOwner(),
+        getParentFragmentManager().setFragmentResultListener("form", getViewLifecycleOwner(),
                 new FragmentResultListener() {
                     @Override
                     public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle result) {
                         Log.e("Home", "onFragmentResult");
                         Task task = (Task) result.get("task");
-                        list.add(0, task);
+                        boolean edit = result.getBoolean("edit");
+                        if (edit) {
+                            list.set(currentPosition, task);
+                        } else {
+                            list.add(0, task);
+                        }
                         adapter.notifyDataSetChanged();
                     }
                 });
+
     }
 
     private void initList(View view) {
@@ -70,6 +76,13 @@ public class HomeFragment extends Fragment {
         }
         adapter = new TaskAdapter(list);
         recyclerView.setAdapter(adapter);
+        adapter.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(int position) {
+                Task task = list.get(position);
+                openForm(task);
+            }
+        });
     }
 
     @Override
@@ -81,10 +94,16 @@ public class HomeFragment extends Fragment {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.action_add) {
-            NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
-            navController.navigate(R.id.action_navigation_home_to_formFragment);
+            openForm(null);
         }
         return super.onOptionsItemSelected(item);
 
+    }
+
+    private void openForm(Task task) {
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("task", task);
+        NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
+        navController.navigate(R.id.action_navigation_home_to_formFragment, bundle);
     }
 }

@@ -9,7 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.taskapp_orig.R;
-import com.example.taskapp_orig.ui.ITaskListener;
+import com.example.taskapp_orig.interfaces.OnItemClickListener;
 import com.example.taskapp_orig.ui.models.Task;
 
 import java.text.DateFormat;
@@ -17,9 +17,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Locale;
 
-public class TaskAdapter extends RecyclerView.Adapter<ViewHolder> {
+public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
 
     private ArrayList<Task> list;
+    protected OnItemClickListener onItemClickListener;
 
 
     public TaskAdapter(ArrayList<Task> list) {
@@ -43,33 +44,37 @@ public class TaskAdapter extends RecyclerView.Adapter<ViewHolder> {
     public int getItemCount() {
         return list.size();
     }
-}
 
-class ViewHolder extends RecyclerView.ViewHolder {
-
-    private TextView textTitle;
-    private TextView textTime;
-    private ITaskListener listener;
-
-
-    public ViewHolder(@NonNull View itemView) {
-        super(itemView);
-        textTitle = itemView.findViewById(R.id.textView);
-        textTime = itemView.findViewById(R.id.textTime);
-        itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                listener.onElement(textTitle.getText().toString());
-            }
-        });
+    public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
+        this.onItemClickListener = onItemClickListener;
     }
 
-    public void bind(Task task) {
-        textTitle.setText(task.getTitle());
-        textTime.setText(getDate(task.getCreatedAt()));
-    }
-    private String getDate(long time) {
-        DateFormat dateFormat = new SimpleDateFormat("dd MMMM yyyy HH:mm zzzz", Locale.getDefault());
-        return dateFormat.format(time);
+
+    class ViewHolder extends RecyclerView.ViewHolder {
+
+        private TextView textTitle;
+        private TextView textTime;
+
+        public ViewHolder(@NonNull View itemView) {
+            super(itemView);
+            textTitle = itemView.findViewById(R.id.textView);
+            textTime = itemView.findViewById(R.id.textTime);
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onItemClickListener.onItemClick(getAdapterPosition());
+                }
+            });
+        }
+
+        public void bind(Task task) {
+            textTitle.setText(task.getTitle());
+            textTime.setText(getDate(task.getCreatedAt()));
+        }
+
+        private String getDate(long time) {
+            DateFormat dateFormat = new SimpleDateFormat("dd MMMM yyyy HH:mm zzzz", Locale.getDefault());
+            return dateFormat.format(time);
+        }
     }
 }
