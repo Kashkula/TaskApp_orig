@@ -54,7 +54,7 @@ public class HomeFragment extends Fragment {
                     public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle result) {
                         Log.e("Home", "onFragmentResult");
                         Task task = (Task) result.get("task");
-                        list.add(0,task);
+                        list.add(0, task);
                         adapter.notifyDataSetChanged();
                     }
                 });
@@ -62,7 +62,7 @@ public class HomeFragment extends Fragment {
 
     private void initList(View view) {
         RecyclerView recyclerView = view.findViewById(R.id.recyclerView);
-        if (list ==null) {
+        if (list == null) {
             list = new ArrayList<>();
             list.add(new Task("Ruslan", 0L));
             list.add(new Task("Aziz", 0L));

@@ -16,7 +16,7 @@ import android.widget.EditText;
 import com.example.taskapp_orig.R;
 import com.example.taskapp_orig.ui.models.Task;
 
-public class FormFragment extends Fragment {
+public class FormFragment extends Fragment implements ITaskListener {
 
     private EditText editText;
 
@@ -52,5 +52,10 @@ public class FormFragment extends Fragment {
         } else {
             editText.setError("Заполните это поле!");
         }
+    }
+
+    @Override
+    public void onElement(String text) {
+
     }
 }

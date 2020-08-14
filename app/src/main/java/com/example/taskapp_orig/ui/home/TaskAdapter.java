@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.taskapp_orig.R;
+import com.example.taskapp_orig.ui.ITaskListener;
 import com.example.taskapp_orig.ui.models.Task;
 
 import java.text.DateFormat;
@@ -48,12 +49,19 @@ class ViewHolder extends RecyclerView.ViewHolder {
 
     private TextView textTitle;
     private TextView textTime;
+    private ITaskListener listener;
 
 
     public ViewHolder(@NonNull View itemView) {
         super(itemView);
         textTitle = itemView.findViewById(R.id.textView);
         textTime = itemView.findViewById(R.id.textTime);
+        itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                listener.onElement(textTitle.getText().toString());
+            }
+        });
     }
 
     public void bind(Task task) {
