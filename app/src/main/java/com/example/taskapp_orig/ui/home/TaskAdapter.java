@@ -1,8 +1,10 @@
 package com.example.taskapp_orig.ui.home;
 
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -15,6 +17,7 @@ import com.example.taskapp_orig.ui.models.Task;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Locale;
 
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
@@ -37,7 +40,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.bind(list.get(position));
+        holder.bind(list.get(position), position);
     }
 
     @Override
@@ -52,28 +55,41 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
 
     class ViewHolder extends RecyclerView.ViewHolder {
 
-        private TextView textTitle;
-        private TextView textTime;
+        private TextView textTitle,textTime,textViewUpdateTime;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             textTitle = itemView.findViewById(R.id.textView);
             textTime = itemView.findViewById(R.id.textTime);
+            textViewUpdateTime = itemView.findViewById(R.id.textViewUpdateTime);
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     onItemClickListener.onItemClick(getAdapterPosition());
                 }
             });
+            itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    onItemClickListener.onItemLongClick(getAdapterPosition());
+                    return true;
+                }
+            });
         }
 
-        public void bind(Task task) {
+        public void bind(Task task, int position) {
             textTitle.setText(task.getTitle());
             textTime.setText(getDate(task.getCreatedAt()));
+            textViewUpdateTime.setText(getUpdateDate(task.getUpdateTime()));
         }
 
         private String getDate(long time) {
             DateFormat dateFormat = new SimpleDateFormat("dd MMMM yyyy HH:mm zzzz", Locale.getDefault());
+            return dateFormat.format(time);
+        }
+
+        private String getUpdateDate(long time) {
+            DateFormat dateFormat = new SimpleDateFormat("HH:mm",Locale.getDefault());
             return dateFormat.format(time);
         }
     }

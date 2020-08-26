@@ -1,7 +1,9 @@
 package com.example.taskapp_orig.ui.home;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -11,23 +13,28 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentResultListener;
+import androidx.lifecycle.Observer;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.taskapp_orig.R;
 import com.example.taskapp_orig.interfaces.OnItemClickListener;
+import com.example.taskapp_orig.ui.App;
 import com.example.taskapp_orig.ui.models.Task;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class HomeFragment extends Fragment {
 
     private TaskAdapter adapter;
     private ArrayList<Task> list;
     protected int currentPosition;
+    protected Task task;
+    protected boolean sortCharBoolean = false, sortDateBoolean = false;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -44,58 +51,84 @@ public class HomeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         initList(view);
-        initResultListener();
     }
 
-    private void initResultListener() {
-        getParentFragmentManager().setFragmentResultListener("form", getViewLifecycleOwner(),
-                new FragmentResultListener() {
-                    @Override
-                    public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle result) {
-                        Log.e("Home", "onFragmentResult");
-                        Task task = (Task) result.get("task");
-                        boolean edit = result.getBoolean("edit");
-                        if (edit) {
-                            list.set(currentPosition, task);
-                        } else {
-                            list.add(0, task);
-                        }
-                        adapter.notifyDataSetChanged();
-                    }
-                });
-
-    }
-
-    private void initList(View view) {
+    private void initList(View view)  {
         RecyclerView recyclerView = view.findViewById(R.id.recyclerView);
-        if (list == null) {
-            list = new ArrayList<>();
-            list.add(new Task("Ruslan", 0L));
-            list.add(new Task("Aziz", 0L));
-            list.add(new Task("Talgar", 0L));
-        }
+        list = new ArrayList<>();
+
+        App.getInstance().getDatabase().taskDao().getAllLive().observe(getViewLifecycleOwner(), new Observer<List<Task>>() {
+            @Override
+            public void onChanged(List<Task> tasks) {
+                list.clear();
+                list.addAll(App.getInstance().getDatabase().taskDao().getAll());
+                adapter.notifyDataSetChanged();
+            }
+        });
         adapter = new TaskAdapter(list);
         recyclerView.setAdapter(adapter);
         adapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(int position) {
-                Task task = list.get(position);
+                currentPosition = position;
+                task = list.get(position);
                 openForm(task);
+            }
+
+            @Override
+            public void onItemLongClick(int position) {
+                showAlert(list.get(position));
+            }
+
+            private void showAlert(final Task task) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+                builder.setMessage("Удалить запись " + task.getTitle() + "?");
+                builder.setNegativeButton("Отмена", null);
+                builder.setPositiveButton("Да", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        App.getInstance().getDatabase().taskDao().delete(task);
+                    }
+                });
+                builder.show();
             }
         });
     }
 
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.menu_home, menu);
-    }
 
     @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_home, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == R.id.action_add) {
-            openForm(null);
+        if (item.getItemId() == R.id.action_add) openForm(null);
+        if (item.getItemId() == R.id.updateAt)
+            App.getInstance().getDatabase().taskDao().nukeTable();
+        list.clear();
+        if (item.getItemId() == R.id.sortChar) {
+            if (sortCharBoolean) {
+                list.addAll(App.getInstance().getDatabase().taskDao().getPersonsAlphabetically(true));
+                sortCharBoolean = false;
+            } else {
+                list.addAll(App.getInstance().getDatabase().taskDao().getPersonsAlphabetically(false));
+                sortCharBoolean = true;
+            }
         }
+        if (item.getItemId() == R.id.sortDate) {
+            if (sortDateBoolean) {
+                list.addAll(App.getInstance().getDatabase().taskDao().getTaskDateAlphabetically(true));
+                sortDateBoolean = false;
+            } else {
+                list.addAll(App.getInstance().getDatabase().taskDao().getTaskDateAlphabetically(false));
+                sortDateBoolean = true;
+            }
+        }
+        adapter.notifyDataSetChanged();
+
         return super.onOptionsItemSelected(item);
 
     }

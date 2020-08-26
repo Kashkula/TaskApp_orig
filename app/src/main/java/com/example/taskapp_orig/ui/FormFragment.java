@@ -19,7 +19,6 @@ import com.example.taskapp_orig.ui.models.Task;
 public class FormFragment extends Fragment {
 
     private EditText editText;
-    private boolean edit;
     protected Task task;
 
 
@@ -37,7 +36,6 @@ public class FormFragment extends Fragment {
         task = (Task) requireArguments().getSerializable("task");
         if (task != null) {
             editText.setText(task.getTitle());
-            edit = true;
         }
         view.findViewById(R.id.btn_save).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -50,18 +48,20 @@ public class FormFragment extends Fragment {
 
     private void save() {
         String text = editText.getText().toString().trim();
-        if (!text.isEmpty())  {
-            Task task = new Task(text, System.currentTimeMillis());
-            Bundle bundle = new Bundle();
-            bundle.putSerializable("task", task);
-            bundle.putBoolean("edit", edit);
-            getParentFragmentManager().setFragmentResult("form", bundle);
+        if (!text.isEmpty()) {
+            if (task != null) {
+                task.setTitle(text);
+                task.setUpdateTime(System.currentTimeMillis());
+                App.getInstance().getDatabase().taskDao().update(task);
+            } else {
+                task = new Task(text, System.currentTimeMillis());
+                task.setUpdateTime(System.currentTimeMillis());
+                App.getInstance().getDatabase().taskDao().insert(task);
+            }
             NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
             navController.navigateUp();
         } else {
             editText.setError("Заполните это поле!");
         }
     }
-
-
 }
