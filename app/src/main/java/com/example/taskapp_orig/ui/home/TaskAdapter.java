@@ -17,7 +17,6 @@ import com.example.taskapp_orig.ui.models.Task;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Locale;
 
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
@@ -40,7 +39,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.bind(list.get(position), position);
+        holder.bind(list.get(position));
     }
 
     @Override
@@ -56,11 +55,13 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
     class ViewHolder extends RecyclerView.ViewHolder {
 
         private TextView textTitle,textTime,textViewUpdateTime;
+        private RelativeLayout relativeLayout;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             textTitle = itemView.findViewById(R.id.textView);
             textTime = itemView.findViewById(R.id.textTime);
+            relativeLayout = itemView.findViewById(R.id.relative_layout_main);
             textViewUpdateTime = itemView.findViewById(R.id.textViewUpdateTime);
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -77,7 +78,10 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
             });
         }
 
-        public void bind(Task task, int position) {
+        public void bind(Task task) {
+            if (task.getTitle().length()>5)
+                relativeLayout.setBackgroundColor(Color.GRAY);
+            else relativeLayout.setBackgroundColor(Color.WHITE);
             textTitle.setText(task.getTitle());
             textTime.setText(getDate(task.getCreatedAt()));
             textViewUpdateTime.setText(getUpdateDate(task.getUpdateTime()));
